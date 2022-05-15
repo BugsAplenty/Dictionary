@@ -3,9 +3,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
-
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 
@@ -132,7 +130,7 @@ public class DictionaryController implements Initializable {
     private void ingestCSV(File file) {
         try(Scanner scanner = new Scanner(file)) {
             while (scanner.hasNextLine()) {
-                String[] row = scanner.nextLine().split("\t");
+                String[] row = scanner.nextLine().split(",");
                 dict.put(row[0], row[1]);
             }
         } catch (FileNotFoundException e) {
@@ -145,9 +143,32 @@ public class DictionaryController implements Initializable {
         currentTerm = "";
     }
 
-    public void exportCSVMenuItemPressed() {
-
+    public void exportCSVMenuItemPressed() throws IOException {
+        File outputFile = saveCSV();
+        writeCsv(outputFile);
     }
+
+    private void writeCsv(File outputFile) throws IOException {
+        FileWriter writer = new FileWriter(outputFile);
+        for (Map.Entry<String, String> term: dict.entrySet()) {
+            writer.append(term.getKey());
+            writer.append(",");
+            writer.append(term.getValue());
+            writer.append('\n');
+        }
+        writer.flush();
+        writer.close();
+    }
+
+    private File saveCSV() {
+        FileChooser.ExtensionFilter csvExtFilter = new FileChooser.ExtensionFilter("CSV files (*.csv)", "*.csv");
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Choose Export Directory");
+        fileChooser.setInitialDirectory(new File("."));
+        fileChooser.getExtensionFilters().add(csvExtFilter);
+        return fileChooser.showSaveDialog(null);
+    }
+
     private File getFileCSV() {
         FileChooser.ExtensionFilter csvExtFilter = new FileChooser.ExtensionFilter("CSV files (*.csv)", "*.csv");
         FileChooser fileChooser = new FileChooser();
